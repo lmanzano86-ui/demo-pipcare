@@ -1,0 +1,15 @@
+{% extends "portal/base.html" %}
+{% block title %}Mis citas{% endblock %}
+{% block content %}
+<div class="nav"><a class="btn-sec" href="{% url 'portal_home' portal_token.token %}">← Inicio</a></div>
+<div class="card">
+  <h3>📅 Mis citas</h3>
+  {% for a in upcoming %}
+  <div style="padding:10px 0;border-top:1px solid var(--border)">
+    <strong>{{ a.date|date:"l, d M Y" }} — {{ a.start_time|time:"H:i" }}</strong><br>
+    <span class="sub">{{ a.get_appt_type_display }} con {{ a.provider.get_full_name|default:a.provider.username }}</span><br>
+    <span class="badge {% if a.status == 'confirmed' %}ok{% else %}warn{% endif %}">{{ a.get_status_display }}</span>
+  </div>
+  {% empty %}<p class="sub">Sin citas programadas.</p>{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "portal/base.html" %}
+{% block title %}Hola, {{ patient.first_name }}{% endblock %}
+{% block content %}
+{% if messages %}{% for m in messages %}<div class="alert ok">{{ m }}</div>{% endfor %}{% endif %}
+<div class="card">
+  <h3>Hola, {{ patient.first_name }} 👋</h3>
+  <p class="sub">Este es su portal con {{ clinic.name|default:"la clínica" }}.</p>
+</div>
+
+{% if pending_docs %}
+<div class="card" style="border:2px solid var(--brand)">
+  <h3>📝 Tiene {{ pending_docs }} documento{{ pending_docs|pluralize }} por firmar</h3>
+  <p class="sub">Fírmelos aquí para no hacer fila en recepción.</p>
+  <a class="btn" href="{% url 'portal_documents' portal_token.token %}">Firmar documentos</a>
+</div>
+{% else %}
+<div class="card">
+  <h3>✅ Documentos al día</h3>
+  <p class="sub">No tiene documentos pendientes de firma.</p>
+  <div class="nav"><a class="btn-sec" href="{% url 'portal_documents' portal_token.token %}">Ver documentos</a></div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h3>📅 Próximas citas</h3>
+  {% for a in upcoming %}
+  <p><strong>{{ a.date|date:"d M Y" }} — {{ a.start_time|time:"H:i" }}</strong><br>
+     <span class="sub">{{ a.get_appt_type_display }} con {{ a.provider.get_full_name|default:a.provider.username }}</span></p>
+  {% empty %}<p class="sub">Sin citas programadas.</p>{% endfor %}
+  {% if upcoming %}<div class="nav"><a class="btn-sec" href="{% url 'portal_appointments' portal_token.token %}">Ver todas</a></div>{% endif %}
+</div>
+
+<div class="card">
+  <h3>📁 Mis casos</h3>
+  {% for acc in accidents %}
+  <p><strong>Accidente del {{ acc.date }}</strong> <span class="sub">({{ acc.get_accident_type_display }})</span></p>
+  {% empty %}<p class="sub">Sin casos registrados.</p>{% endfor %}
+</div>
+{% endblock %}

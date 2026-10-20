@@ -1,0 +1,75 @@
+{% extends "portal/base.html" %}
+{% block title %}Firmar: {{ cfg.name }}{% endblock %}
+{% block content %}
+<div class="nav"><a class="btn-sec" href="{% url 'portal_documents' portal_token.token %}">← Documentos</a></div>
+<div class="card">
+  <h3>{{ content.title }}</h3>
+  <p class="sub">{{ content.subtitle }}</p>
+  <div class="doc-body">{{ content.body_html|safe }}</div>
+</div>
+
+<div class="card">
+  <h3>Firma electrónica</h3>
+  <p class="sub">Al firmar usted declara que: (1) firma voluntariamente; (2) acepta usar firma electrónica;
+  (3) la firma es la suya. Se registrarán nombre, fecha, hora e IP.</p>
+
+  {% if saved_signature %}
+  <div id="savedBlock" style="border:2px solid var(--brand);border-radius:12px;padding:14px;margin-bottom:12px">
+    <p style="margin-top:0"><strong>Usar mi firma guardada:</strong></p>
+    <img src="{{ saved_signature }}" alt="Firma guardada" style="max-width:280px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px">
+    <form method="post" style="margin-top:10px">
+      {% csrf_token %}
+      <input type="hidden" name="use_saved" value="1">
+      <label class="sub"><strong>Nombre en letra de molde</strong></label>
+      <input type="text" name="signer_name" required maxlength="200" value="{{ patient_name }}" style="margin:6px 0 10px">
+      <button type="submit" class="btn">Firmar con mi firma</button>
+    </form>
+    <p><a href="#" id="drawNew" class="sub">o dibujar una firma nueva</a></p>
+  </div>
+  {% endif %}
+
+  <div id="drawBlock" {% if saved_signature %}style="display:none"{% endif %}>
+  <form method="post" id="signForm">
+    {% csrf_token %}
+    <label class="sub"><strong>Nombre en letra de molde</strong></label>
+    <input type="text" name="signer_name" required maxlength="200" value="{{ patient_name }}" style="margin:6px 0 10px">
+    <label class="sub"><strong>{{ content.signer_label }}</strong> — dibuje con el dedo:</label>
+    <canvas id="pad" width="600" height="200" style="width:100%;height:200px;border:2px dashed var(--border);border-radius:12px;background:#fff;touch-action:none;margin:8px 0"></canvas>
+    <div class="nav">
+      <button type="button" class="btn-sec" id="clearPad" style="flex:1">Borrar</button>
+    </div>
+    <input type="hidden" name="signature_data" id="signature_data">
+    {% if messages %}{% for m in messages %}<div class="alert bad">{{ m }}</div>{% endfor %}{% endif %}
+    <button type="submit" class="btn">Firmar documento</button>
+  </form>
+  </div>
+</div>
+
+<script>
+(function(){
+  var pad=document.getElementById('pad'); if(!pad) return;
+  var ctx=pad.getContext('2d'),drawing=false,hasInk=false;
+  ctx.lineWidth=2.5;ctx.lineCap='round';ctx.strokeStyle='#0f172a';
+  function pos(e){var r=pad.getBoundingClientRect();
+    var x=(e.touches&&e.touches[0]?e.touches[0].clientX:e.clientX)-r.left;
+    var y=(e.touches&&e.touches[0]?e.touches[0].clientY:e.clientY)-r.top;
+    return [x*pad.width/r.width,y*pad.height/r.height];}
+  function start(e){drawing=true;var p=pos(e);ctx.beginPath();ctx.moveTo(p[0],p[1]);e.preventDefault();}
+  function move(e){if(!drawing)return;var p=pos(e);ctx.lineTo(p[0],p[1]);ctx.stroke();hasInk=true;e.preventDefault();}
+  function stop(){drawing=false;}
+  pad.addEventListener('mousedown',start);pad.addEventListener('mousemove',move);
+  pad.addEventListener('mouseup',stop);pad.addEventListener('mouseleave',stop);
+  pad.addEventListener('touchstart',start,{passive:false});
+  pad.addEventListener('touchmove',move,{passive:false});
+  pad.addEventListener('touchend',stop);
+  document.getElementById('clearPad').onclick=function(){ctx.clearRect(0,0,pad.width,pad.height);hasInk=false;};
+  document.getElementById('signForm').onsubmit=function(){
+    if(!hasInk){alert('Dibuje su firma antes de firmar.');return false;}
+    document.getElementById('signature_data').value=pad.toDataURL('image/png');return true;};
+  var dn=document.getElementById('drawNew');
+  if(dn) dn.onclick=function(e){e.preventDefault();
+    document.getElementById('drawBlock').style.display='block';
+    document.getElementById('savedBlock').style.display='none';};
+})();
+</script>
+{% endblock %}

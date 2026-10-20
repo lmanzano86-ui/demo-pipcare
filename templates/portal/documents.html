@@ -1,0 +1,25 @@
+{% extends "portal/base.html" %}
+{% block title %}Mis documentos{% endblock %}
+{% block content %}
+{% if messages %}{% for m in messages %}<div class="alert ok">{{ m }}</div>{% endfor %}{% endif %}
+<div class="nav">
+  <a class="btn-sec" href="{% url 'portal_home' portal_token.token %}">← Inicio</a>
+</div>
+{% for acc, items in cases %}
+<div class="card">
+  <h3>Caso: accidente del {{ acc.date }}</h3>
+  {% for dt, cfg, signed in items %}
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border)">
+    <div><strong style="font-size:14px">{{ cfg.name }}</strong><br><span class="sub" style="font-size:12px">{{ cfg.desc }}</span></div>
+    {% if signed %}
+    <span class="badge ok">Firmado</span>
+    {% else %}
+    <a class="btn-sec" style="white-space:nowrap" href="{% url 'portal_new_document' portal_token.token dt acc.pk %}">Firmar</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% empty %}
+<div class="card"><p class="sub">Sin casos registrados.</p></div>
+{% endfor %}
+{% endblock %}
