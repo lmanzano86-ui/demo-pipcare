@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block content %}
+<div style="max-width:400px; margin:0 auto; text-align:center">
+  <p style="font-size:15px; color:var(--muted); margin-bottom:6px">Sistema de gestión para clínicas de accidentes</p>
+  <h2 style="margin:0 0 18px; color:var(--brand-dark)">Acceso de usuarios</h2>
+  {% if form.errors %}
+  <div class="alert bad">Usuario o contraseña incorrectos. Inténtelo de nuevo.</div>
+  {% endif %}
+  {% if next %}
+  <div class="alert warn" style="font-size:13px">Debe iniciar sesión para ver esa página.</div>
+  {% endif %}
+  <form method="post" style="text-align:left">
+    {% csrf_token %}
+    <label><strong>Usuario</strong></label>
+    {{ form.username }}
+    <label style="margin-top:10px; display:block"><strong>Contraseña</strong></label>
+    {{ form.password }}
+    <button type="submit" class="btn" style="width:100%; margin-top:16px">Entrar al sistema</button>
+    <input type="hidden" name="next" value="{{ next }}">
+  </form>
+  <p style="margin-top:18px"><a class="btn-ghost" href="{% url 'landing' %}">← Volver a la portada</a></p>
+</div>
+<style>
+#id_username, #id_password { width:100%; padding:12px; border:1px solid var(--border); border-radius:10px; font-size:16px; margin-top:4px; }
+</style>
+{% endblock %}
