@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Cumplimiento — PIPCare{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h2>Cumplimiento y seguridad</h2>
+  <p class="muted">Documentos de HIPAA y cumplimiento — solo visibles para administradores de la clínica.</p>
+</div>
+<div class="grid">
+  {% for d in docs %}
+  <div class="card">
+    <h3 style="margin-top:0">{{ d.title }}</h3>
+    <p class="muted">{{ d.desc }}</p>
+    <a class="btn" href="{{ d.url }}" target="_blank" rel="noopener">Abrir documento</a>
+  </div>
+  {% endfor %}
+</div>
+<div class="card">
+  <h3 style="margin-top:0">Estado del análisis de riesgos</h3>
+  <p><span class="badge ok">0 riesgos altos</span> <span class="badge warn">1 riesgo medio</span> <span class="badge">14 riesgos bajos</span></p>
+  <p class="muted">Última revisión: 19 oct 2026 · Próxima revisión: 19 oct 2027 (o ante cambios significativos).</p>
+</div>
+{% endblock %}
