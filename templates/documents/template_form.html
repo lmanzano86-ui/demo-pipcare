@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Nueva versión — {{ cfg.name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Nueva versión: {{ cfg.name }}</h1>
+    <p class="sub">Se publicará como v{{ active.version|add:1 }}. La v{{ active.version }} quedará histórica e inmutable. Use <code>{nombre_paciente}</code>-estilo <code>{placeholders}</code> para los datos del caso.</p>
+  </div>
+</div>
+<div class="card">
+  <p class="sub"><strong>Placeholders disponibles:</strong>
+  {patient_name} {patient_dob} {patient_phone} {patient_address} {accident_date}
+  {claim_number} {insurer} {policy_number} {clinic_name} {clinic_npi} {clinic_phone} {clinic_address}</p>
+  <form method="post">
+    {% csrf_token %}
+    <label><strong>Título</strong></label>
+    <input type="text" name="title" value="{{ active.title }}" required maxlength="200" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; margin:6px 0 12px">
+    <label><strong>Subtítulo</strong></label>
+    <input type="text" name="subtitle_tpl" value="{{ active.subtitle_tpl }}" maxlength="300" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; margin:6px 0 12px">
+    <label><strong>Cuerpo HTML</strong></label>
+    <textarea name="body_tpl" rows="16" required style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; margin:6px 0 12px; font-family:monospace; font-size:13px">{{ active.body_tpl }}</textarea>
+    <label><strong>Etiqueta del firmante</strong></label>
+    <input type="text" name="signer_label" value="{{ active.signer_label }}" required maxlength="200" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; margin:6px 0 12px">
+    <label><strong>Nota legal</strong></label>
+    <input type="text" name="legal_note" value="{{ active.legal_note }}" maxlength="300" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; margin:6px 0 12px">
+    <div style="display:flex; gap:10px">
+      <button type="submit" class="btn">Publicar v{{ active.version|add:1 }}</button>
+      <a class="btn-sec" href="{% url 'template_detail' doc_type %}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

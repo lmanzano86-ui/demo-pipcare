@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Plantillas legales{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Plantillas legales</h1>
+    <p class="sub">Textos legales versionados. Editar = publicar una nueva versión; las anteriores quedan intactas y cada firma conserva la versión que se firmó.</p>
+  </div>
+</div>
+{% if messages %}{% for m in messages %}<div class="alert ok">{{ m }}</div>{% endfor %}{% endif %}
+<div class="card">
+  <table>
+    <tr><th>Formulario</th><th>Versión activa</th><th>Vigente desde</th><th>Versiones</th><th></th></tr>
+    {% for r in rows %}
+    <tr>
+      <td><strong>{{ r.cfg.name }}</strong><br><span class="sub">{{ r.cfg.desc }}</span></td>
+      <td>{% if r.active %}<span class="badge ok">v{{ r.active.version }}</span>{% else %}<span class="badge warn">sin plantilla</span>{% endif %}</td>
+      <td>{{ r.active.effective_date|default:"—" }}</td>
+      <td>{{ r.count }}</td>
+      <td style="text-align:right"><a class="btn-ghost" href="{% url 'template_detail' r.doc_type %}">Ver →</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Imprimir: {{ cfg.name }}{% endblock %}
+{% block content %}
+<div class="no-print" style="margin-bottom:16px; display:flex; gap:10px">
+  <button class="btn" onclick="window.print()">Imprimir</button>
+  <a class="btn-sec" href="{% url 'document_detail' doc.pk %}">← Volver</a>
+</div>
+
+<div class="print-doc">
+  <h2 style="margin-bottom:2px">{{ content.title }}</h2>
+  <p style="color:#555; margin-top:0">{{ content.subtitle }} · Documento #{{ doc.pk }}</p>
+  <hr>
+  <div class="doc-body">{{ content.body_html|safe }}</div>
+  <div style="margin-top:32px">
+    <p><strong>{{ content.signer_label }}:</strong></p>
+    {% if doc.esignature %}
+    <img src="{{ doc.esignature.image_data }}" alt="Firma" style="max-width:320px; border-bottom:1px solid #000">
+    <p style="font-size:13px">Firmado electrónicamente por {{ doc.esignature.signer_name }}
+       el {{ doc.esignature.signed_at|date:"d M Y H:i" }} · IP {{ doc.esignature.ip_address|default:"—" }}</p>
+    {% else %}
+    <p style="margin-top:40px">X ________________________________________&nbsp;&nbsp;&nbsp;&nbsp;Fecha: ____________</p>
+    <p style="font-size:13px">Nombre en letra de molde: ________________________________________</p>
+    {% endif %}
+    <p style="font-size:12px; color:#555; margin-top:16px"><em>{{ content.legal_note }}</em></p>
+  </div>
+</div>
+
+<style>
+.doc-body p, .doc-body li { line-height:1.7; font-size:14px; }
+.doc-body ul, .doc-body ol { margin:8px 0 8px 20px; }
+.wetink-warning { border:2px solid #000; padding:10px 12px; margin-bottom:14px; font-size:14px; }
+.print-doc { background:#fff; padding:8px; }
+@media print {
+  .sidebar, .topbar, .no-print, .scrim { display:none !important; }
+  .main { margin:0 !important; padding:0 !important; }
+  body { background:#fff; }
+  .print-doc { box-shadow:none; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ cfg.name }} — versiones{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ cfg.name }}</h1>
+    <p class="sub">{{ cfg.desc }}</p>
+  </div>
+  <a class="btn" href="{% url 'template_new_version' doc_type %}">+ Nueva versión</a>
+</div>
+{% if messages %}{% for m in messages %}<div class="alert ok">{{ m }}</div>{% endfor %}{% endif %}
+
+<div class="card">
+  <h3>Historial de versiones</h3>
+  <table>
+    <tr><th>Versión</th><th>Estado</th><th>Vigente desde</th><th>Creada por</th><th>Documentos que la usan</th></tr>
+    {% for v in versions %}
+    <tr>
+      <td><strong>v{{ v.version }}</strong></td>
+      <td>{% if v.is_active %}<span class="badge ok">Activa</span>{% else %}<span class="badge">Histórica</span>{% endif %}</td>
+      <td>{{ v.effective_date }}</td>
+      <td>{{ v.created_by|default:"sistema" }}</td>
+      <td>{{ v.documents.count }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" class="empty">Sin versiones.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% if active %}
+<div class="card">
+  <h3>Texto activo (v{{ active.version }}) — vista previa</h3>
+  <p class="sub">{{ active.title }}{% if active.subtitle_tpl %} · {{ active.subtitle_tpl }}{% endif %}</p>
+  <div class="doc-body">{{ active.body_tpl|safe }}</div>
+  <p class="sub" style="margin-top:10px"><strong>Nota legal:</strong> {{ active.legal_note|default:"—" }}</p>
+</div>
+{% endif %}
+<p><a class="btn-ghost" href="{% url 'template_list' %}">← Todas las plantillas</a></p>
+{% endblock %}

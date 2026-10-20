@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Formularios{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Formularios</h1>
+    <p class="sub">Todos los formularios en un solo lugar. Elija el caso y genere o repita el que necesite.</p>
+  </div>
+</div>
+
+<div class="card">
+  <form method="get" action="{% url 'documents_hub' %}" style="display:flex; gap:10px; align-items:end; flex-wrap:wrap">
+    <div style="flex:1; min-width:260px">
+      <label for="q"><strong>Buscar caso</strong> <span class="sub" style="font-weight:400">(nombre, teléfono, Nº de reclamo o póliza)</span></label>
+      <input type="text" name="q" id="q" value="{{ q }}" placeholder="Ej: Pérez, 8135551234, CLM-2026…"
+             style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px">
+    </div>
+    <button type="submit" class="btn">Buscar</button>
+  </form>
+  {% if q %}
+    {% if results %}
+    <div style="margin-top:12px; display:grid; gap:8px">
+      {% for a in results %}
+      <a href="{% url 'documents_hub_case' a.pk %}" class="btn-sec" style="justify-content:space-between; display:flex">
+        <span><strong>{{ a.patient }}</strong> — {{ a.date }} · {{ a.get_accident_type_display }}</span>
+        <span class="sub">{{ a.claim_number|default:"sin reclamo" }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="sub" style="margin-top:12px">Sin resultados para «{{ q }}».</p>
+    {% endif %}
+  {% endif %}
+</div>
+
+{% if not accident %}
+<div class="alert warn"><strong>Busque y seleccione un caso</strong> para ver sus formularios. Los datos del paciente se cargan automáticamente en cada formulario.</div>
+{% else %}
+
+{% for gtitle, gdesc, items in sections %}
+<div class="card">
+  <h3>{{ gtitle }}</h3>
+  <p class="sub" style="margin-top:-6px">{{ gdesc }}</p>
+  <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; margin-top:12px">
+    {% for t, cfg, docs in items %}
+    <div style="border:1px solid var(--border); border-radius:12px; padding:14px">
+      <strong>{{ cfg.name }}</strong>
+      <p class="sub" style="font-size:13px; margin:6px 0">{{ cfg.desc }}</p>
+      {% if docs %}
+        <p style="font-size:13px; margin:6px 0">
+          {% for d in docs|slice:":3" %}
+          <span class="badge" style="margin-right:4px">{{ d.get_status_display }} · {{ d.created_at|date:"d M Y" }}</span>
+          {% endfor %}
+          {% if docs|length > 3 %}<span class="sub">+{{ docs|length|add:"-3" }} más</span>{% endif %}
+        </p>
+      {% else %}
+        <p class="sub" style="font-size:13px; margin:6px 0">Sin generar para este caso.</p>
+      {% endif %}
+      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap">
+        <a class="btn" style="padding:8px 14px; font-size:13px" href="{% url 'document_new' t accident.pk %}">
+          {% if cfg.esign %}Firmar{% else %}Imprimir{% endif %} nuevo</a>
+        {% if docs %}
+        <a class="btn-sec" style="padding:8px 14px; font-size:13px" href="{% url 'document_detail' docs.0.pk %}">Ver último</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ cfg.name }} #{{ doc.pk }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ cfg.name }}</h1>
+    <p class="sub">{{ content.subtitle }} · Documento #{{ doc.pk }} · {{ doc.get_status_display }}</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn-sec" href="{% url 'document_print' doc.pk %}">Imprimir</a>
+    <a class="btn-sec" href="{% url 'documents_hub_case' doc.accident.pk %}">← Formularios</a>
+  </div>
+</div>
+
+{% if messages %}{% for m in messages %}<div class="alert ok">{{ m }}</div>{% endfor %}{% endif %}
+
+<div class="card">
+  <div class="doc-body">{{ content.body_html|safe }}</div>
+  <p class="sub" style="margin-top:10px">Texto legal: <strong>plantilla v{{ doc.template.version|default:"1" }}</strong>{% if doc.template and not doc.template.is_active %} (versión histórica — el texto vigente puede haber cambiado){% endif %}</p>
+  <hr style="border:none; border-top:1px solid var(--border); margin:18px 0">
+  {% if doc.esignature %}
+  <p><strong>{{ content.signer_label }}:</strong></p>
+  <img src="{{ doc.esignature.image_data }}" alt="Firma"
+       style="max-width:340px; border:1px solid var(--border); border-radius:8px; background:#fff">
+  <p class="sub" style="font-size:13px; margin-top:8px">
+    Firmado electrónicamente por <strong>{{ doc.esignature.signer_name }}</strong>
+    el {{ doc.esignature.signed_at|date:"d M Y H:i" }} · IP {{ doc.esignature.ip_address|default:"—" }} ·
+    {{ content.legal_note }}</p>
+  <details style="margin-top:12px">
+    <summary class="sub" style="cursor:pointer"><strong>Invalidar esta firma</strong> (la firma se conserva en auditoría; el documento vuelve a borrador)</summary>
+    <form method="post" action="{% url 'signature_invalidate' doc.esignature.pk %}" style="margin-top:10px; display:flex; gap:8px">
+      {% csrf_token %}
+      <input type="text" name="reason" required maxlength="300" placeholder="Motivo de la invalidación (obligatorio)"
+             style="flex:1; padding:10px; border:1px solid var(--border); border-radius:10px">
+      <button type="submit" class="btn-sec" onclick="return confirm('¿Invalidar esta firma?')">Invalidar</button>
+    </form>
+  </details>
+  {% else %}
+  <p><strong>{{ content.signer_label }}:</strong></p>
+  <p class="sub">________________________________________&nbsp;&nbsp;&nbsp;&nbsp;Fecha: ____________</p>
+  <p class="sub" style="font-size:13px">{{ content.legal_note }}</p>
+  {% if doc.status == "borrador" and not cfg.esign %}
+  <form method="post" action="{% url 'document_mark_printed' doc.pk %}" style="margin-top:12px">
+    {% csrf_token %}
+    <button type="submit" class="btn">Marcar como impreso / firmado a mano</button>
+  </form>
+  {% endif %}
+  {% endif %}
+</div>
+
+{% if doc.notes %}
+<div class="card"><h3>Notas</h3><p style="white-space:pre-line">{{ doc.notes }}</p></div>
+{% endif %}
+
+{% with invalid=doc.signatures.all %}
+{% if invalid %}
+<div class="card">
+  <h3>Historial de firmas</h3>
+  <table>
+    <tr><th>Firmante</th><th>Fecha</th><th>IP</th><th>Estado</th></tr>
+    {% for s in invalid %}
+    <tr>
+      <td>{{ s.signer_name }}</td>
+      <td>{{ s.signed_at|date:"d M Y H:i" }}</td>
+      <td>{{ s.ip_address|default:"—" }}</td>
+      <td>{% if s.is_valid %}<span class="badge ok">Válida</span>{% else %}<span class="badge warn">Invalidada: {{ s.invalidation_reason }}</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endwith %}
+<style>
+.doc-body p, .doc-body li { line-height:1.65; }
+.doc-body ul, .doc-body ol { margin:8px 0 8px 20px; }
+.wetink-warning { background:#fef3c7; border:1px solid #f59e0b; border-radius:10px; padding:12px 14px; margin-bottom:14px; }
+</style>
+{% endblock %}
