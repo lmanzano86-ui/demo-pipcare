@@ -35,7 +35,7 @@ def decrypt_secret(token: str) -> str:
 
 def provisioning_uri(secret: str, username: str, clinic: str) -> str:
     return pyotp.totp.TOTP(secret).provisioning_uri(
-        name=username, issuer_name=f"PIPCare ({clinic})")
+        name=username, issuer_name=f"SecurePIP ({clinic})")
 
 
 def verify_code(secret: str, code: str) -> bool:
