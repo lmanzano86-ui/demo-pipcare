@@ -1,0 +1,14 @@
+django==6.1.2
+django-tenants==4.0.0
+psycopg2-binary==2.9.10
+python-dotenv==1.0.1
+gunicorn==23.0.0
+whitenoise==6.8.2
+django-simple-history==3.7.0
+reportlab==5.0.1
+# pgserver solo se usa en la VM de desarrollo de Muse (sin Docker);
+# NO va en Docker: el compose ya trae PostgreSQL real.
+reportlab==5.0.1
+pyotp==2.9.0
+qrcode==8.2
+cryptography==44.0.3

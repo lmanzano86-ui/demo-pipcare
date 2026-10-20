@@ -1,0 +1,23 @@
+# Entornos y secretos (nunca se suben)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Datos locales (pgserver embebido)
+.pgdata/
+default/
+
+# Medios / temporales
+media/
+staticfiles/
+/tmp/
+*.log
+
+# Sistema
+.DS_Store
