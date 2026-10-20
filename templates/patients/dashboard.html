@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Inicio — {{ request.tenant.name|default:"Mi Clínica" }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Panel de la clínica</h1>
+    <p class="sub">Resumen de actividad y pacientes recientes</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="{% url 'intake' %}">+ Nueva admisión</a>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="n">{{ stats.patients }}</div><div class="l">Pacientes registrados</div></div>
+  <div class="stat"><div class="n">{{ stats.cases }}</div><div class="l">Casos / accidentes</div></div>
+  <div class="stat ok"><div class="n">{{ stats.ok_cases }}</div><div class="l">Casos con documentos completos</div></div>
+  <div class="stat amber"><div class="n">{{ stats.pending_docs }}</div><div class="l">Casos con documentos PIP pendientes</div></div>
+</div>
+
+{% if pending_cases %}
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Qué falta por caso</h3>
+  <p class="sub" style="margin:0 0 8px">Al entrar verá aquí cada caso con lo cumplido y lo pendiente.</p></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Caso</th><th>Cumplido</th><th>Falta</th><th>Alertas</th><th></th></tr>
+    {% for pc in pending_cases %}
+    <tr>
+      <td><strong>{{ pc.accident.patient }}</strong><br><span class="sub">{{ pc.accident.date }}</span></td>
+      <td><strong>{{ pc.done }}/{{ pc.total }}</strong></td>
+      <td>{% for m in pc.missing %}<span class="badge warn" style="margin:1px 2px; display:inline-block">{{ m }}</span>{% endfor %}</td>
+      <td style="max-width:260px">{% for lvl, txt in pc.alerts %}<div class="sub" style="font-size:12px; margin-bottom:4px">⚠ {{ txt }}</div>{% empty %}<span class="sub">—</span>{% endfor %}</td>
+      <td style="white-space:nowrap; text-align:right">
+        <a class="btn-ghost" href="{% url 'documents_hub_case' pc.accident.pk %}">Formularios →</a><br>
+        <a class="btn-ghost" href="{% url 'accident_detail' pc.accident.pk %}">Ver caso →</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% else %}
+<div class="alert ok"><strong>Todo al día.</strong> Ningún caso tiene documentos o alertas pendientes.</div>
+{% endif %}
+
+{% if security_alerts %}
+<div class="card">
+  <h3>Alertas de seguridad</h3>
+  {% for a in security_alerts %}
+  <div class="alert bad" style="margin-bottom:8px">
+    <strong>{{ a.title }}</strong><br>{{ a.detail }}<br>
+    <span style="font-size:12px; color:#888">{{ a.created_at|date:"d/m/Y H:i" }}</span>
+    {% if user_role == "admin" %}
+    <form method="post" action="{% url 'security_alert_review' a.pk %}" style="display:inline; margin-left:10px">{% csrf_token %}
+      <button type="submit" class="btn sm">Marcar revisada</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if pip_alerts %}
+<div class="card">
+  <h3>Alertas de cumplimiento PIP</h3>
+  {% for a in pip_alerts %}
+  <div class="alert {% if a.level == 'bad' %}bad{% else %}warn{% endif %}" style="margin-bottom:8px">
+    <a href="{% url 'accident_detail' a.accident.pk %}" style="font-weight:700; color:inherit">{{ a.accident.patient }} — {{ a.accident.date }}</a><br>
+    {{ a.text }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Pacientes recientes</h3></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Paciente</th><th>Nacimiento</th><th>Teléfono</th><th></th></tr>
+    {% for p in patients %}
+    <tr>
+      <td><strong>{{ p }}</strong></td>
+      <td>{{ p.date_of_birth|default:"—" }}</td>
+      <td>{{ p.phone|default:"—" }}</td>
+      <td style="text-align:right"><a class="btn-ghost" href="{% url 'patient_detail' p.pk %}">Ver ficha →</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="4" class="empty">Sin pacientes aún. Crea la primera admisión.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}

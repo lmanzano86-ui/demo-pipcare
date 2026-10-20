@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Nueva admisión{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Admisión de paciente</h1>
+    <p class="sub">Registra al paciente y su caso en un solo paso</p>
+  </div>
+</div>
+
+<form method="post">{% csrf_token %}
+<div class="card">
+  <h3>Datos del paciente</h3>
+  <div class="form-grid">{{ p_form.as_p }}</div>
+</div>
+<div class="card">
+  <h3>Datos del accidente</h3>
+  <div class="form-grid">{{ a_form.as_p }}</div>
+</div>
+<div class="form-actions">
+  <button type="submit">Guardar admisión</button>
+  <a class="btn-sec" href="{% url 'dashboard' %}">Cancelar</a>
+</div>
+</form>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Caso {{ accident.date }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Caso: {{ accident.patient }}</h1>
+    <p class="sub">{{ accident.date }} · {{ accident.get_accident_type_display }}</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="{% url 'visit_create' accident.pk %}">+ Nueva visita</a>
+    <a class="btn-sec" href="{% url 'outcome_create' accident.pk %}">+ Medición funcional</a>
+  </div>
+</div>
+
+{% if not accident.oir_b1_1571_signed or not accident.assignment_of_benefits_signed %}
+<div class="alert warn"><strong>Documentos PIP pendientes.</strong> En Florida el OIR-B1-1571 y la cesión de beneficios deben estar firmados para facturar.</div>
+{% endif %}
+
+<div class="card">
+  <h3>Cumplimiento del caso <span style="color:var(--faint); font-weight:400; font-size:13px">(FL 627.736)</span></h3>
+  <dl class="kv">
+    {% for label, ok in accident.compliance_checklist %}
+    <div><dt>{{ label }}</dt><dd>{% if ok %}<span class="badge ok">Cumple</span>{% else %}<span class="badge warn">Pendiente</span>{% endif %}</dd></div>
+    {% endfor %}
+    <div><dt>Tope PIP (EMC)</dt><dd><strong>${{ accident.pip_limit }}</strong></dd></div>
+    <div><dt>Timely filing</dt><dd>vence el <strong>{{ accident.timely_filing_deadline }}</strong></dd></div>
+  </dl>
+  {% for level, text in accident.pip_alerts %}
+  <div class="alert {% if level == 'bad' %}bad{% elif level == 'warn' %}warn{% elif level == 'ok' %}ok{% else %}info{% endif %}" style="margin:8px 0 0">{{ text }}</div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <dl class="kv">
+    <div><dt>Aseguradora</dt><dd>{{ accident.auto_insurer|default:"—" }}</dd></div>
+    <div><dt>Póliza</dt><dd>{{ accident.policy_number|default:"—" }}</dd></div>
+    <div><dt>Nº de reclamo</dt><dd>{{ accident.claim_number|default:"—" }}</dd></div>
+    <div><dt>OIR-B1-1571</dt><dd>{% if accident.oir_b1_1571_signed %}<span class="badge ok">Firmado</span>{% else %}<span class="badge warn">Pendiente</span>{% endif %}</dd></div>
+    <div><dt>Cesión de beneficios</dt><dd>{% if accident.assignment_of_benefits_signed %}<span class="badge ok">Firmada</span>{% else %}<span class="badge warn">Pendiente</span>{% endif %}</dd></div>
+  </dl>
+  {% if accident.description %}<p style="margin:14px 0 0; color:var(--muted)">{{ accident.description }}</p>{% endif %}
+</div>
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Visitas</h3></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Fecha</th><th>Tipo</th><th>Proveedor</th><th>SOAP</th><th>Reclamo</th></tr>
+    {% for v in accident.visits.all %}
+    <tr>
+      <td>{{ v.date }}</td>
+      <td>{{ v.get_visit_type_display }}</td>
+      <td>{{ v.provider|default:"—" }}</td>
+      <td><a href="{% url 'soap_note' v.pk %}">{% if v.soap %}<span class="badge ok">Completada</span>{% else %}<span class="badge neutral">Crear</span>{% endif %}</a></td>
+      <td>{% for c in v.claims.all %}<a href="{% url 'claim_detail' c.pk %}">Reclamo #{{ c.pk }}</a>{% empty %}<a class="btn-ghost" href="{% url 'claim_create' v.pk %}">Crear</a>{% endfor %}</td>
+    </tr>
+    {% empty %}<tr><td colspan="5" class="empty">Sin visitas aún.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0; display:flex; justify-content:space-between; align-items:center">
+    <h3 style="margin:0 0 4px">Plan de tratamiento</h3>
+    <a class="btn" style="padding:8px 14px; font-size:13px" href="{% url 'plan_create' accident.pk %}">+ Nuevo plan</a>
+  </div>
+  <div style="padding:14px 22px 20px; display:grid; gap:12px">
+    {% for p in accident.treatment_plans.all %}
+    <div style="border:1px solid var(--border); border-radius:12px; padding:14px">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <strong>{{ p.title }}</strong>
+        <span class="badge {% if p.status == 'completado' %}ok{% elif p.status == 'suspendido' %}bad{% else %}warn{% endif %}">{{ p.get_status_display }}</span>
+      </div>
+      <p class="sub" style="margin:6px 0">{{ p.sessions_completed }}/{{ p.sessions_prescribed }} sesiones{% if p.frequency %} · {{ p.frequency }}{% endif %} · desde {{ p.start_date }}</p>
+      <div style="background:var(--border); border-radius:999px; height:10px; overflow:hidden">
+        <div style="background:var(--brand); height:10px; width:{{ p.progress_pct }}%"></div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap">
+        {% if p.status == 'activo' %}
+        <form method="post" action="{% url 'plan_add_session' p.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-sec" style="padding:8px 14px; font-size:13px">+1 sesión</button>
+        </form>
+        <form method="post" action="{% url 'plan_set_status' p.pk %}">
+          {% csrf_token %}<input type="hidden" name="status" value="suspendido">
+          <button type="submit" class="btn-ghost" onclick="return confirm('¿Suspender el plan?')">Suspender</button>
+        </form>
+        {% elif p.status == 'suspendido' %}
+        <form method="post" action="{% url 'plan_set_status' p.pk %}">
+          {% csrf_token %}<input type="hidden" name="status" value="activo">
+          <button type="submit" class="btn-sec" style="padding:8px 14px; font-size:13px">Reactivar</button>
+        </form>
+        {% endif %}
+      </div>
+      {% if p.notes %}<p class="sub" style="margin:8px 0 0">{{ p.notes }}</p>{% endif %}
+    </div>
+    {% empty %}
+    <p class="sub" style="margin:0">Sin plan de tratamiento. El plan documenta la necesidad médica (sesiones indicadas vs. realizadas).</p>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0; display:flex; justify-content:space-between; align-items:center">
+    <h3 style="margin:0 0 4px">Documentos y formularios</h3>
+    <a class="btn" style="padding:8px 14px; font-size:13px" href="{% url 'documents_hub_case' accident.pk %}">Todos los formularios</a>
+  </div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Documento</th><th>Estado</th><th>Fecha</th><th></th></tr>
+    {% for d in accident.documents.all|slice:":10" %}
+    <tr>
+      <td>{{ d.get_doc_type_display }}</td>
+      <td><span class="badge {% if d.status == 'firmado' %}ok{% elif d.status == 'impreso' %}neutral{% else %}warn{% endif %}">{{ d.get_status_display }}</span></td>
+      <td>{{ d.created_at|date:"d M Y" }}</td>
+      <td><a class="btn-ghost" href="{% url 'document_detail' d.pk %}">Ver</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="4" class="empty">Sin documentos. Genere el primero desde «Todos los formularios».</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0; display:flex; justify-content:space-between; align-items:center">
+    <h3 style="margin:0 0 4px">Próximas citas</h3>
+    <a class="btn" style="padding:8px 14px; font-size:13px" href="{% url 'appointment_create_case' accident.pk %}">Agendar cita</a>
+  </div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Fecha</th><th>Hora</th><th>Proveedor</th><th>Tipo</th><th>Estado</th></tr>
+    {% for a in accident.appointments.all|slice:":8" %}
+    <tr>
+      <td>{{ a.date }}</td>
+      <td>{{ a.start_time|time:"H:i" }}</td>
+      <td>{{ a.provider.get_full_name|default:a.provider.username }}</td>
+      <td>{{ a.get_appt_type_display }}</td>
+      <td><span class="badge {% if a.status == 'completed' or a.status == 'confirmed' %}ok{% elif a.status == 'no_show' %}bad{% elif a.status == 'scheduled' %}neutral{% else %}warn{% endif %}">{{ a.get_status_display }}</span></td>
+    </tr>
+    {% empty %}<tr><td colspan="5" class="empty">Sin citas agendadas.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Mediciones funcionales</h3></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Fecha</th><th>Tipo</th><th class="num">Puntaje</th></tr>
+    {% for o in accident.outcomes.all %}
+    <tr><td>{{ o.date }}</td><td>{{ o.get_measure_type_display }}</td><td class="num"><strong>{{ o.score }}</strong></td></tr>
+    {% empty %}<tr><td colspan="3" class="empty">Sin mediciones aún.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}

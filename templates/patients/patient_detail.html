@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ patient }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ patient }}</h1>
+    <p class="sub">Ficha del paciente
+      {% if patient.signature_image %}<span class="badge ok">Firma electrónica guardada</span>
+      {% else %}<span class="badge neutral">Sin firma guardada</span>{% endif %}</p>
+  </div>
+</div>
+
+<div class="card">
+  <dl class="kv">
+    <div><dt>Nacimiento</dt><dd>{{ patient.date_of_birth|default:"—" }}</dd></div>
+    <div><dt>Teléfono</dt><dd>{{ patient.phone|default:"—" }}</dd></div>
+    <div><dt>Email</dt><dd>{{ patient.email|default:"—" }}</dd></div>
+    <div><dt>Contacto de emergencia</dt><dd>{{ patient.emergency_contact_name|default:"—" }}{% if patient.emergency_contact_phone %} · {{ patient.emergency_contact_phone }}{% endif %}</dd></div>
+    <div><dt>Alergias</dt><dd>{% if patient.allergies %}<span class="badge warn">{{ patient.allergies }}</span>{% else %}—{% endif %}</dd></div>
+  </dl>
+</div>
+
+<div class="card">
+  <h3>Portal del paciente</h3>
+  {% if portal_token %}
+  <p class="sub">Enlace activo (vence el {{ portal_token.expires_at|date:"d M Y" }}{% if portal_token.last_used_at %}, último acceso {{ portal_token.last_used_at|date:"d M Y H:i" }}{% endif %}).
+     Compártalo con el paciente por SMS o WhatsApp para que firme sus documentos desde casa.</p>
+  <p style="font-family:monospace; font-size:12px; background:var(--brand-bg); padding:10px; border-radius:8px; word-break:break-all">{{ request.scheme }}://{{ request.get_host }}/portal/{{ portal_token.token }}/</p>
+  <form method="post" action="{% url 'portal_token_revoke' patient.pk %}" style="display:flex; gap:8px">
+    {% csrf_token %}
+    <button type="submit" class="btn-sec">Revocar enlace</button>
+    <button type="submit" class="btn-sec" formaction="{% url 'portal_token_create' patient.pk %}">Regenerar</button>
+  </form>
+  {% else %}
+  <p class="sub">El paciente aún no tiene enlace. Genérelo y envíeselo para que firme sus documentos desde casa.</p>
+  <form method="post" action="{% url 'portal_token_create' patient.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="btn">Generar enlace del portal</button>
+  </form>
+  {% endif %}
+  {% if messages %}{% for m in messages %}<div class="alert ok" style="margin-top:10px">{{ m }}</div>{% endfor %}{% endif %}
+</div>
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Accidentes / casos</h3></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Fecha</th><th>Tipo</th><th>Aseguradora</th><th>OIR-B1-1571</th><th>Cesión</th><th></th></tr>
+    {% for a in patient.accidents.all %}
+    <tr>
+      <td>{{ a.date }}</td>
+      <td>{{ a.get_accident_type_display }}</td>
+      <td>{{ a.auto_insurer|default:"—" }}</td>
+      <td>{% if a.oir_b1_1571_signed %}<span class="badge ok">Firmado</span>{% else %}<span class="badge warn">Pendiente</span>{% endif %}</td>
+      <td>{% if a.assignment_of_benefits_signed %}<span class="badge ok">Firmada</span>{% else %}<span class="badge warn">Pendiente</span>{% endif %}</td>
+      <td style="text-align:right"><a class="btn-ghost" href="{% url 'accident_detail' a.pk %}">Abrir →</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="6" class="empty">Sin casos registrados.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}
