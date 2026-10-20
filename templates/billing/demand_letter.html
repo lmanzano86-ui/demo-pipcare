@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Carta de demanda — Reclamo #{{ claim.pk }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Carta de demanda</h1>
+    <p class="sub">FL 627.736(10) — condición precedente para demandar al insurer</p>
+  </div>
+  <div class="page-actions no-print">
+    <button class="btn" onclick="window.print()">Imprimir</button>
+    <a class="btn-sec" href="{% url 'claim_detail' claim.pk %}">Volver al reclamo</a>
+  </div>
+</div>
+
+{% if claim.demand_letter_sent %}
+<div class="alert ok no-print">Carta registrada como enviada el {{ claim.demand_letter_sent }}{% if claim.demand_letter_tracking %} — tracking: {{ claim.demand_letter_tracking }}{% endif %}.</div>
+{% else %}
+<div class="alert warn no-print"><strong>Antes de enviar:</strong> debe ir por <strong>correo certificado o registrado con acuse de recibo</strong> a la persona/dirección designada por la aseguradora ante la OIR (F.S. 624.422). Adjuntar copia del <em>assignment of benefits</em>. El insurer tiene <strong>30 días</strong> para pagar lo vencido + interés + penalidad del 10% (máx. $250).</div>
+{% endif %}
+
+<div class="card" id="demand-letter">
+  <p style="text-align:center; font-weight:800; font-size:17px; text-transform:lowercase; margin-bottom:24px;">demand letter under s. 627.736</p>
+
+  <p><strong>Fecha:</strong> {{ today }}</p>
+  <p><strong>Aseguradora (pagador):</strong> {{ claim.payer|default:"__________________" }}</p>
+  <p><strong>Asegurado:</strong> {{ patient }}</p>
+  <p><strong>Nº de póliza:</strong> {{ accident.policy_number|default:"—" }} &nbsp;·&nbsp; <strong>Nº de reclamo:</strong> {{ accident.claim_number|default:"—" }}</p>
+  <p><strong>Proveedor:</strong> {{ request.tenant.name }} {% if request.tenant.npi %}(NPI {{ request.tenant.npi }}){% endif %}</p>
+
+  <p>Por medio de la presente, y conforme a la sección 627.736(10) de los Estatutos de Florida, se le requiere el pago de los beneficios PIP vencidos que se itemizan a continuación, correspondientes a servicios médicos razonables y necesarios prestados al asegurado arriba indicado con motivo del accidente de fecha {{ accident.date }}:</p>
+
+  <div class="table-wrap">
+  <table>
+    <tr><th>Fecha de servicio</th><th>CPT/HCPCS</th><th class="num">Monto facturado</th></tr>
+    {% for i in itemized %}
+    <tr><td>{{ i.date }}</td><td><strong>{{ i.cpt }}</strong></td><td class="num">${{ i.amount }}</td></tr>
+    {% empty %}<tr><td colspan="3" class="empty">Sin líneas en el reclamo.</td></tr>
+    {% endfor %}
+    <tr class="total"><td colspan="2">TOTAL RECLAMADO</td><td class="num">${{ total }}</td></tr>
+  </table>
+  </div>
+
+  <p>Se adjunta copia del <em>assignment of benefits</em> firmado por el asegurado, así como el formulario CMS-1500 con la itemización completa (montos exactos, fechas y tipos de tratamiento).</p>
+
+  <p>De no recibirse el pago total de los montos vencidos, más los intereses legales y la penalidad del 10% establecida en la ley, dentro de los <strong>30 días</strong> siguientes al recibo de esta carta, se procederá a interponer la correspondiente acción legal, reclamándose además los honorarios de abogado y costas que en derecho correspondan.</p>
+
+  <br><br>
+  <p>Atentamente,</p>
+  <br><br>
+  <p>___________________________<br>{{ request.tenant.name }}</p>
+</div>
+
+<div class="card no-print">
+  <h3>Registrar envío</h3>
+  <form method="post">{% csrf_token %}
+    <p><label>Fecha de envío</label><input type="date" name="sent_date" value="{{ today|date:'Y-m-d' }}"></p>
+    <p><label>Tracking del correo certificado</label><input type="text" name="tracking" placeholder="Ej. 9405 5000 0000 0000 0000 00"></p>
+    <div class="form-actions"><button type="submit">Registrar como enviada</button></div>
+  </form>
+</div>
+
+<style>@media print{ .no-print, .sidebar, .topbar{display:none !important} .content{padding:0} body{background:#fff} }</style>
+{% endblock %}

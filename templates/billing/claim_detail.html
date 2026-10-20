@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Reclamo #{{ claim.pk }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Reclamo #{{ claim.pk }}</h1>
+    <p class="sub">{{ claim.visit.accident.patient }} · visita del {{ claim.visit.date }}</p>
+  </div>
+  <div class="page-actions">
+    {% if user_role == 'admin' or user_role == 'billing' or user_role == 'provider' %}
+    <a class="btn" href="{% url 'claim_add_line' claim.pk %}">+ Agregar línea (CPT)</a>
+    {% endif %}
+    <a class="btn-sec" href="{% url 'claim_pdf' claim.pk %}">Descargar CMS-1500 (PDF)</a>
+    {% if claim.status != 'sent' %}<a class="btn-sec" href="{% url 'claim_mark_sent' claim.pk %}">Marcar como enviado</a>{% endif %}
+    <a class="btn-sec" href="{% url 'demand_letter' claim.pk %}">Carta de demanda</a>
+    <form method="post" action="{% url 'claim_transmit' claim.pk %}" style="display:inline">
+      {% csrf_token %}
+      <button type="submit" class="btn">Generar 837P</button>
+    </form>
+    {% if claim.transmissions.all %}
+    <a class="btn-sec" href="{% url 'claim_transmit' claim.pk %}">Descargar último 837P</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if send_blocked %}
+<div class="alert bad"><strong>No se puede marcar como enviado.</strong> El CMS-1500 debe cumplir sustancialmente "en su totalidad" (FL 627.736(5)(d)): completa los puntos pendientes del checklist de abajo.</div>
+{% endif %}
+
+{% if claim.coding_warnings %}
+<div class="alert warn"><strong>Advertencias de codificación (NCCI / anti-upcoding):</strong>
+<ul style="margin:8px 0 0; padding-left:20px">
+{% for w in claim.coding_warnings %}<li>{{ w }}</li>{% endfor %}
+</ul></div>
+{% endif %}
+
+{% if user_role == 'admin' or user_role == 'billing' or user_role == 'provider' %}
+<div class="card">
+  <h3>Agregar desde el catálogo</h3>
+  <p class="sub">Un clic crea la línea con CPT, modificadores, ICD-10 y cargo por defecto (editable después).</p>
+  <form method="post" action="{% url 'claimline_from_service' claim.pk %}" style="display:flex; gap:8px; flex-wrap:wrap; align-items:end">
+    {% csrf_token %}
+    <div style="flex:2; min-width:220px">
+      <label class="sub"><strong>Servicio</strong></label>
+      <select name="service_id" required style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px">
+        <option value="">— Elegir —</option>
+        {% for s in services %}
+        <option value="{{ s.pk }}">{{ s.code }} — {{ s.name }} ({{ s.default_cpt }}{% if s.default_modifier_1 %}-{{ s.default_modifier_1 }}{% endif %} · ${{ s.default_charge }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="sub"><strong>Fecha de servicio</strong></label>
+      <input type="date" name="date_of_service" value="{{ claim.visit.date|date:'Y-m-d' }}" style="padding:10px; border:1px solid var(--border); border-radius:10px">
+    </div>
+    <button type="submit" class="btn">+ Agregar línea</button>
+  </form>
+  <p style="margin:10px 0 0"><a class="btn-ghost" href="{% url 'service_list' %}">Gestionar catálogo →</a></p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h3>Checklist CMS-1500 <span style="color:var(--faint); font-weight:400; font-size:13px">(requerido antes de enviar)</span></h3>
+  <dl class="kv">
+    {% for label, ok in claim.cms1500_checklist %}
+    <div><dt>{{ label }}</dt><dd>{% if ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">Falta</span>{% endif %}</dd></div>
+    {% endfor %}
+  </dl>
+</div>
+
+<div class="card">
+  <dl class="kv">
+    <div><dt>Estado</dt><dd>
+      {% if claim.status == 'sent' or claim.status == 'transmitted' %}<span class="badge ok">{{ claim.get_status_display }}</span>
+      {% elif claim.status == 'paid' %}<span class="badge info">{{ claim.get_status_display }}</span>
+      {% else %}<span class="badge warn">{{ claim.get_status_display }}</span>{% endif %}
+    </dd></div>
+    <div><dt>Pagador</dt><dd>{{ claim.payer|default:"—" }}</dd></div>
+    <div><dt>ID del pagador (clearinghouse)</dt><dd>
+      <form method="post" action="{% url 'claim_update_payer' claim.pk %}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+        {% csrf_token %}
+        <input type="text" name="payer" value="{{ claim.payer }}" placeholder="Aseguradora" maxlength="150"
+               style="padding:8px; border:1px solid var(--border); border-radius:8px">
+        <input type="text" name="payer_id" value="{{ claim.payer_id }}" placeholder="ID clearinghouse" maxlength="30"
+               style="padding:8px; border:1px solid var(--border); border-radius:8px; width:140px">
+        <button type="submit" class="btn-sec" style="padding:8px 12px">Guardar</button>
+      </form>
+    </dd></div>
+    <div><dt>Total</dt><dd>${{ claim.total }}</dd></div>
+  </dl>
+</div>
+
+{% if claim.transmissions.all %}
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Transmisiones 837P</h3></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Archivo</th><th>Control</th><th>Estado</th><th>Generado</th><th></th></tr>
+    {% for t in claim.transmissions.all %}
+    <tr>
+      <td style="font-family:monospace; font-size:12px">{{ t.file_name }}</td>
+      <td>{{ t.control_number }}</td>
+      <td><span class="badge {% if t.status == 'sent' or t.status == 'acknowledged' %}ok{% elif t.status == 'failed' %}bad{% else %}warn{% endif %}">{{ t.get_status_display }}</span></td>
+      <td>{{ t.created_at|date:"d M Y H:i" }}</td>
+      <td><a class="btn-ghost" href="{% url 'claim_transmit' claim.pk %}">Descargar</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Líneas de servicio</h3></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Fecha</th><th>CPT/HCPCS</th><th>Mod.</th><th>ICD-10</th><th>Ptr.</th><th class="num">Unid.</th><th class="num">Cargo</th></tr>
+    {% for l in claim.lines.all %}
+    <tr>
+      <td>{{ l.date_of_service }}</td>
+      <td><strong>{{ l.cpt_code }}</strong></td>
+      <td>{{ l.modifier_1 }} {{ l.modifier_2 }}</td>
+      <td>{{ l.icd10_code }}</td>
+      <td>{{ l.diagnosis_pointer }}</td>
+      <td class="num">{{ l.units }}</td>
+      <td class="num">${{ l.charge }}</td>
+    </tr>
+    {% empty %}<tr><td colspan="7" class="empty">Sin líneas. Agrega la primera con el botón de arriba.</td></tr>
+    {% endfor %}
+    <tr class="total"><td colspan="6">TOTAL</td><td class="num">${{ claim.total }}</td></tr>
+  </table>
+  </div>
+</div>
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Historial de cambios <span style="color:var(--faint); font-weight:400; font-size:13px">(auditoría)</span></h3></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Fecha</th><th>Usuario</th><th>Estado</th></tr>
+    {% for h in claim.history.all|slice:":10" %}
+    <tr><td>{{ h.history_date }}</td><td>{{ h.history_user|default:"—" }}</td><td>{{ h.get_status_display }}</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}

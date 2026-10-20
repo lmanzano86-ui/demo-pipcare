@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Reportes de dinero{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Reportes de dinero</h1>
+    <p class="sub">
+      {% if start or end %}{{ start|default:"…" }} → {{ end|default:"hoy" }}
+      {% elif period == "month" %}Este mes
+      {% elif period == "quarter" %}Último trimestre
+      {% elif period == "year" %}Este año
+      {% else %}Todo el historial{% endif %}
+    </p>
+  </div>
+  <div class="page-actions">
+    <form method="get" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+      <select name="period" onchange="this.form.submit()" style="padding:9px; border:1px solid var(--border); border-radius:10px">
+        <option value="all" {% if period == "all" %}selected{% endif %}>Todo</option>
+        <option value="month" {% if period == "month" %}selected{% endif %}>Este mes</option>
+        <option value="quarter" {% if period == "quarter" %}selected{% endif %}>Trimestre</option>
+        <option value="year" {% if period == "year" %}selected{% endif %}>Este año</option>
+        <option value="custom" {% if period == "custom" %}selected{% endif %}>Personalizado</option>
+      </select>
+      {% if period == "custom" %}
+      <input type="date" name="start" value="{{ request.GET.start }}" style="padding:9px; border:1px solid var(--border); border-radius:10px">
+      <input type="date" name="end" value="{{ request.GET.end }}" style="padding:9px; border:1px solid var(--border); border-radius:10px">
+      <button type="submit" class="btn-sec">Aplicar</button>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="n">${{ billed|floatformat:2 }}</div><div class="l">Facturado</div></div>
+  <div class="stat ok"><div class="n">${{ collected|floatformat:2 }}</div><div class="l">Cobrado ({{ collection_rate }}%)</div></div>
+  <div class="stat amber"><div class="n">${{ pending|floatformat:2 }}</div><div class="l">Pendiente</div></div>
+  <div class="stat"><div class="n">{{ claims_count }}</div><div class="l">Reclamos</div></div>
+  <div class="stat {% if open_denials %}bad{% endif %}"><div class="n">{{ open_denials }}</div><div class="l">Denegaciones abiertas</div></div>
+</div>
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Por aseguradora</h3></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Aseguradora</th><th class="num">Facturado</th><th class="num">Cobrado</th><th class="num">Pendiente</th><th class="num">Reclamos</th></tr>
+    {% for r in payer_rows %}
+    <tr><td><strong>{{ r.payer }}</strong></td><td class="num">${{ r.billed|floatformat:2 }}</td>
+        <td class="num">${{ r.collected|floatformat:2 }}</td><td class="num"><strong>${{ r.pending|floatformat:2 }}</strong></td>
+        <td class="num">{{ r.claims }}</td></tr>
+    {% empty %}<tr><td colspan="5" class="empty">Sin datos en el período.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Por proveedor</h3></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Proveedor</th><th class="num">Facturado</th><th class="num">Visitas</th><th class="num">Reclamos</th></tr>
+    {% for r in provider_rows %}
+    <tr><td><strong>{{ r.provider }}</strong></td><td class="num">${{ r.billed|floatformat:2 }}</td>
+        <td class="num">{{ r.visits }}</td><td class="num">{{ r.claims }}</td></tr>
+    {% empty %}<tr><td colspan="4" class="empty">Sin datos en el período.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:18px 22px 0"><h3 style="margin:0 0 4px">Cuentas por cobrar (antigüedad)</h3>
+  <p class="sub" style="margin:0 0 8px">Reclamos con saldo pendiente, por días desde el envío.</p></div>
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Antigüedad</th><th class="num">Reclamos</th><th class="num">Monto</th></tr>
+    {% for b in aging.buckets %}
+    <tr><td>{{ b.label }}</td><td class="num">{{ b.count }}</td><td class="num">${{ b.amount|floatformat:2 }}</td></tr>
+    {% endfor %}
+    <tr><td><strong>Total por cobrar</strong></td><td class="num"></td><td class="num"><strong>${{ aging.total|floatformat:2 }}</strong></td></tr>
+  </table>
+  </div>
+</div>
+{% endblock %}

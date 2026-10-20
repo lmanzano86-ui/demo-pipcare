@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Agregar línea{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Agregar línea CPT</h1>
+    <p class="sub">Reclamo #{{ claim.pk }} · {{ claim.visit.accident.patient }}</p>
+  </div>
+</div>
+<div class="card">
+  <form method="post">{% csrf_token %}
+    <div class="form-grid">{{ form.as_p }}</div>
+    <div class="form-actions">
+      <button type="submit">Agregar línea</button>
+      <a class="btn-sec" href="{% url 'claim_detail' claim.pk %}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

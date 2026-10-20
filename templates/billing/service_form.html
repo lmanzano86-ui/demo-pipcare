@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{% if service %}Editar {{ service.code }}{% else %}Nuevo servicio{% endif %}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>{% if service %}Editar servicio{% else %}Nuevo servicio{% endif %}</h1></div>
+</div>
+{% if messages %}{% for m in messages %}<div class="alert bad">{{ m }}</div>{% endfor %}{% endif %}
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    <div style="display:grid; grid-template-columns:1fr 2fr; gap:12px">
+      <div><label><strong>Código interno*</strong></label>
+        <input type="text" name="code" value="{{ service.code|default:'' }}" required maxlength="20" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>Nombre del servicio*</strong></label>
+        <input type="text" name="name" value="{{ service.name|default:'' }}" required maxlength="120" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>Categoría</strong></label>
+        <select name="category" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px">
+          <option value="visita" {% if service.category == "visita" %}selected{% endif %}>Visita / Evaluación</option>
+          <option value="quiro" {% if service.category == "quiro" %}selected{% endif %}>Quiropráctico</option>
+          <option value="terapia" {% if service.category == "terapia" %}selected{% endif %}>Terapia / Rehabilitación</option>
+          <option value="examen" {% if service.category == "examen" %}selected{% endif %}>Examen / Estudio</option>
+          <option value="otro" {% if service.category == "otro" %}selected{% endif %}>Otro</option>
+        </select></div>
+      <div><label><strong>CPT/HCPCS*</strong></label>
+        <input type="text" name="default_cpt" value="{{ service.default_cpt|default:'' }}" required maxlength="10" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>Modificador 1</strong></label>
+        <input type="text" name="default_modifier_1" value="{{ service.default_modifier_1|default:'' }}" maxlength="5" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>Modificador 2</strong></label>
+        <input type="text" name="default_modifier_2" value="{{ service.default_modifier_2|default:'' }}" maxlength="5" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>ICD-10 por defecto</strong></label>
+        <input type="text" name="default_icd10" value="{{ service.default_icd10|default:'' }}" maxlength="10" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>Puntero diagnóstico</strong></label>
+        <input type="text" name="default_diagnosis_pointer" value="{{ service.default_diagnosis_pointer|default:'' }}" maxlength="10" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>Unidades</strong></label>
+        <input type="number" name="default_units" value="{{ service.default_units|default:1 }}" min="1" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>Cargo por defecto ($)</strong></label>
+        <input type="number" step="0.01" name="default_charge" value="{{ service.default_charge|default:'' }}" min="0" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>Duración (min)</strong></label>
+        <input type="number" name="duration_min" value="{{ service.duration_min|default:30 }}" min="5" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:14px">
+      <button type="submit" class="btn">Guardar</button>
+      <a class="btn-sec" href="{% url 'service_list' %}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

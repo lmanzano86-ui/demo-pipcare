@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Catálogo de servicios{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Catálogo de servicios</h1>
+    <p class="sub">Defina una vez cada servicio con su CPT y cargo; al facturar se agrega la línea en un clic.</p>
+  </div>
+  <a class="btn" href="{% url 'service_new' %}">+ Nuevo servicio</a>
+</div>
+{% if messages %}{% for m in messages %}<div class="alert ok">{{ m }}</div>{% endfor %}{% endif %}
+<div class="card">
+  <table>
+    <tr><th>Código</th><th>Servicio</th><th>CPT</th><th>Mod</th><th>ICD-10</th><th>Cargo</th><th>Estado</th><th></th></tr>
+    {% for s in services %}
+    <tr>
+      <td><strong>{{ s.code }}</strong></td>
+      <td>{{ s.name }}<br><span class="sub">{{ s.get_category_display }} · {{ s.duration_min }} min</span></td>
+      <td>{{ s.default_cpt }}</td>
+      <td>{{ s.default_modifier_1 }}{% if s.default_modifier_2 %}/{{ s.default_modifier_2 }}{% endif %}</td>
+      <td>{{ s.default_icd10|default:"—" }}</td>
+      <td>${{ s.default_charge }}</td>
+      <td>{% if s.is_active %}<span class="badge ok">Activo</span>{% else %}<span class="badge">Inactivo</span>{% endif %}</td>
+      <td style="text-align:right; white-space:nowrap">
+        <a class="btn-ghost" href="{% url 'service_edit' s.pk %}">Editar</a>
+        <form method="post" action="{% url 'service_toggle' s.pk %}" style="display:inline">
+          {% csrf_token %}
+          <button type="submit" class="btn-ghost">{% if s.is_active %}Desactivar{% else %}Activar{% endif %}</button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8" class="empty">Sin servicios. Cree el primero.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
