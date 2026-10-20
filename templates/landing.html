@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PIPCare — Sistema de gestión para clínicas de accidentes</title>
+<style>
+:root{--brand:#0F766E;--brand-dark:#0B4F4A;--ink:#1C1917;--muted:#6B7280;--bg:#F6F5F2;--line:#E7E2D9}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);line-height:1.6;background:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+/* NAV */
+.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
+.logo{font-size:22px;font-weight:800;color:var(--brand-dark);text-decoration:none}
+.logo span{color:var(--brand)}
+.nav-links{display:flex;gap:26px;align-items:center}
+.nav-links a{color:var(--ink);text-decoration:none;font-size:15px}
+.nav-links a:hover{color:var(--brand)}
+.btn{display:inline-block;background:var(--brand);color:#fff!important;text-decoration:none;border-radius:12px;padding:12px 26px;font-weight:700;font-size:16px;border:none;cursor:pointer}
+.btn:hover{background:var(--brand-dark)}
+.btn.big{padding:15px 34px;font-size:17px}
+.btn.ghost{background:#fff;color:var(--brand-dark)!important;border:2px solid var(--brand)}
+/* HERO */
+.hero{background:linear-gradient(135deg,#0B4F4A 0%,#0F766E 60%,#149188 100%);color:#fff;padding:84px 0 70px;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.kicker{color:#7ED9CE;font-size:13px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:14px}
+.hero h1{font-size:44px;line-height:1.15;margin-bottom:18px}
+.hero p.sub{font-size:18px;color:#D7F0ED;margin-bottom:30px;max-width:480px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero-cta .btn.ghost{background:transparent;color:#fff!important;border-color:#fff}
+.hero-cta .btn.ghost:hover{background:rgba(255,255,255,.12)}
+.mock{background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden;color:var(--ink)}
+.mock-bar{background:#F1EFEA;padding:10px 16px;font-size:13px;font-weight:700;color:var(--muted);border-bottom:1px solid var(--line)}
+.mock-body{padding:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.mock-stat{background:var(--bg);border-radius:10px;padding:12px}
+.mock-stat b{display:block;font-size:20px;color:var(--brand-dark)}
+.mock-stat span{font-size:11.5px;color:var(--muted)}
+.mock-alert{grid-column:1/-1;background:#FDF3E3;border-left:4px solid #B45309;border-radius:8px;padding:10px 14px;font-size:13px}
+/* SECTIONS */
+section{padding:72px 0}
+section.alt{background:var(--bg)}
+h2.sec{font-size:32px;color:var(--brand-dark);margin-bottom:10px;text-align:center}
+p.lead{text-align:center;color:var(--muted);font-size:17px;max-width:640px;margin:0 auto 44px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.card .ico{font-size:30px;margin-bottom:10px}
+.card h3{font-size:18px;margin-bottom:8px;color:var(--brand-dark)}
+.card p{font-size:14.5px;color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:paso}
+.step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 20px;text-align:center}
+.step .n{display:inline-flex;width:44px;height:44px;border-radius:50%;background:var(--brand);color:#fff;font-weight:800;font-size:19px;align-items:center;justify-content:center;margin-bottom:12px}
+.step h3{font-size:16px;margin-bottom:6px}
+.step p{font-size:13.5px;color:var(--muted)}
+.check li{list-style:none;padding:8px 0 8px 34px;position:relative;font-size:16px}
+.check li:before{content:"✓";position:absolute;left:0;top:8px;width:24px;height:24px;border-radius:50%;background:#E5F5EA;color:#15803D;font-weight:800;text-align:center;line-height:24px;font-size:14px}
+/* PRICING */
+.price-card{background:#fff;border:2px solid var(--line);border-radius:18px;padding:34px;text-align:center}
+.price-card.dest{border-color:var(--brand);box-shadow:0 12px 34px rgba(15,118,110,.16);position:relative}
+.price-card .tag{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--brand);color:#fff;font-size:12.5px;font-weight:700;padding:4px 16px;border-radius:999px}
+.price-card h3{font-size:20px;margin-bottom:6px}
+.price-card .monto{font-size:42px;font-weight:800;color:var(--brand-dark);margin:8px 0}
+.price-card .monto small{font-size:16px;color:var(--muted);font-weight:400}
+.price-card ul{list-style:none;margin:18px 0 26px;text-align:left}
+.price-card li{padding:6px 0 6px 28px;position:relative;font-size:14.5px}
+.price-card li:before{content:"✓";position:absolute;left:0;color:var(--brand);font-weight:800}
+/* FAQ */
+.faq{max-width:720px;margin:0 auto}
+.faq details{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin-bottom:12px}
+.faq summary{font-weight:700;cursor:pointer;font-size:16px}
+.faq p{margin-top:10px;color:var(--muted);font-size:15px}
+/* CTA + FOOTER */
+.cta{background:linear-gradient(135deg,#0B4F4A,#0F766E);color:#fff;text-align:center;padding:80px 0}
+.cta h2{font-size:34px;margin-bottom:12px}
+.cta p{color:#D7F0ED;margin-bottom:28px;font-size:17px}
+footer{background:#0B2B28;color:#9DBFBB;padding:36px 0;font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
+footer a{color:#D7F0ED;text-decoration:none}
+/* MODAL LOGIN */
+.modal-ov{position:fixed;inset:0;background:rgba(11,43,40,.62);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-ov[hidden]{display:none}
+.modal-card{background:#fff;border-radius:18px;padding:34px 32px;max-width:400px;width:100%;position:relative;box-shadow:0 30px 70px rgba(0,0,0,.35);text-align:center}
+.modal-x{position:absolute;top:10px;right:14px;background:none;border:none;font-size:28px;color:var(--muted);cursor:pointer;line-height:1}
+.modal-card h3{font-size:22px;color:var(--brand-dark);margin-bottom:4px}
+.modal-card .sub{font-size:13.5px;color:var(--muted);margin-bottom:20px}
+.modal-card label{display:block;text-align:left;font-weight:700;font-size:14px;margin:12px 0 4px}
+.modal-card input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:16px}
+.modal-err{background:#FBE7EB;color:#881337;border:1px solid #F5C2CE;border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:6px;text-align:left}
+.modal-err[hidden]{display:none}
+@media(max-width:860px){
+  .hero .wrap{grid-template-columns:1fr}
+  .hero h1{font-size:33px}
+  .grid3,.grid2{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .nav-links a:not(.btn){display:none}
+  section{padding:52px 0}
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="logo" href="/">PIP<span>Care</span></a>
+    <nav class="nav-links">
+      <a href="#funciones">Funciones</a>
+      <a href="#como">Cómo funciona</a>
+      <a href="#precios">Precios</a>
+      <a href="#seguridad">Seguridad</a>
+      <a class="btn" href="#" data-login>Entrar</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <p class="kicker">Para clínicas de accidentes en Florida</p>
+      <h1>Su clínica sin papeles ni plazos que se vencen.</h1>
+      <p class="sub">Admisión, firmas, citas, facturación PIP y cobros — todo en un solo sistema, en español. Diseñado para que usted atienda pacientes, no para pelear con formularios.</p>
+      <div class="hero-cta">
+        <a class="btn big" href="#" data-login>Iniciar sesión</a>
+        <a class="btn big ghost" href="#precios">Ver planes</a>
+      </div>
+    </div>
+    <div class="mock">
+      <div class="mock-bar">Panel de la clínica — hoy</div>
+      <div class="mock-body">
+        <div class="mock-stat"><b>24</b><span>casos activos</span></div>
+        <div class="mock-stat"><b>$18,400</b><span>facturado este mes</span></div>
+        <div class="mock-stat"><b>92%</b><span>cobrado</span></div>
+        <div class="mock-alert"><strong>Alerta:</strong> 2 casos con plazo PIP por vencerse esta semana</div>
+        <div class="mock-stat"><b>6</b><span>citas mañana</span></div>
+        <div class="mock-stat"><b>0</b><span>documentos perdidos</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="funciones">
+  <div class="wrap">
+    <h2 class="sec">Todo lo que su clínica necesita, en un solo lugar</h2>
+    <p class="lead">Cada módulo le quita trabajo de encima: lo que hoy depende de memoria o papel, el sistema lo hace solo.</p>
+    <div class="grid3">
+      <div class="card"><div class="ico">📝</div><h3>Admisión digital</h3><p>Paciente y accidente en un formulario. Los datos se precargan solos en formularios, reclamos y cartas.</p></div>
+      <div class="card"><div class="ico">✍️</div><h3>Firma electrónica</h3><p>6 documentos se firman con el dedo en pantalla, con validez legal. La firma se recuerda para la próxima.</p></div>
+      <div class="card"><div class="ico">🏠</div><h3>Portal del paciente</h3><p>Enlace seguro por SMS: el paciente firma sus documentos desde casa y ve sus citas.</p></div>
+      <div class="card"><div class="ico">📅</div><h3>Agenda + SMS</h3><p>Vista de día sin citas encimadas y recordatorio automático el día antes. Menos ausencias.</p></div>
+      <div class="card"><div class="ico">💵</div><h3>Facturación PIP</h3><p>CMS-1500 en PDF con un clic, envío electrónico 837P y carta de demanda lista. El sistema no deja enviar reclamos incompletos.</p></div>
+      <div class="card"><div class="ico">📊</div><h3>Reportes de dinero</h3><p>Facturado, cobrado y pendiente por aseguradora y por antigüedad. Sepa dónde está su dinero.</p></div>
+      <div class="card"><div class="ico">⏰</div><h3>Relojes PIP automáticos</h3><p>14 días, 35/75 días: el sistema calcula los plazos de Florida y alerta antes de que venzan.</p></div>
+      <div class="card"><div class="ico">🔒</div><h3>Roles y auditoría</h3><p>Cada puesto ve lo suyo. Queda registro de quién entró y qué firmó cada paciente.</p></div>
+      <div class="card"><div class="ico">📋</div><h3>Plan de tratamiento</h3><p>Sesiones indicadas vs. realizadas con progreso visible. Documenta la necesidad médica.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="como">
+  <div class="wrap">
+    <h2 class="sec">Cómo funciona</h2>
+    <p class="lead">De la admisión al cobro, en 4 pasos.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>Registre</h3><p>Admisión digital del paciente y su accidente, una sola vez.</p></div>
+      <div class="step"><div class="n">2</div><h3>Firme</h3><p>Documentos firmados en pantalla o desde casa con el portal.</p></div>
+      <div class="step"><div class="n">3</div><h3>Atienda</h3><p>Agenda, plan de tratamiento y recordatorios automáticos.</p></div>
+      <div class="step"><div class="n">4</div><h3>Cobre</h3><p>Factura en un clic, controle pagos y vea sus reportes.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="sec">Lo que deja de preocuparle</h2>
+    <p class="lead">Beneficios concretos para el día a día de su clínica.</p>
+    <ul class="check" style="max-width:680px;margin:0 auto">
+      <li><strong>Menos papel:</strong> cero archivadores; ningún formulario se pierde.</li>
+      <li><strong>Menos fila en recepción:</strong> el paciente llega con todo firmado desde casa.</li>
+      <li><strong>Menos ausencias:</strong> el recordatorio por SMS sale solo.</li>
+      <li><strong>Menos denegaciones:</strong> el sistema revisa la codificación antes de enviar.</li>
+      <li><strong>Cero plazos vencidos:</strong> alertas automáticas de los relojes PIP.</li>
+      <li><strong>El dinero visible:</strong> facturado, cobrado y pendiente, siempre al día.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="alt" id="precios">
+  <div class="wrap">
+    <h2 class="sec">Precios simples, sin letra pequeña</h2>
+    <p class="lead">Tarifa fija mensual según el tamaño de su clínica. La mensualidad incluye hosting, mantenimiento, actualizaciones y soporte.</p>
+    <div class="grid3" style="max-width:960px;margin:0 auto">
+      <div class="price-card">
+        <h3>Esencial</h3>
+        <p class="monto">$249<small>/mes</small></p>
+        <p style="font-size:14px;color:var(--brand);font-weight:700;margin:0">o $2,490/año <span style="font-weight:400;color:var(--muted)">(2 meses gratis)</span></p>
+        <ul>
+          <li>1 proveedor</li>
+          <li>Todo el sistema</li>
+          <li>Usuarios ilimitados</li>
+        </ul>
+      </div>
+      <div class="price-card dest">
+        <div class="tag">Más popular</div>
+        <h3>Crecimiento</h3>
+        <p class="monto">$399<small>/mes</small></p>
+        <p style="font-size:14px;color:var(--brand);font-weight:700;margin:0">o $3,990/año <span style="font-weight:400;color:var(--muted)">(2 meses gratis)</span></p>
+        <ul>
+          <li>2 a 3 proveedores</li>
+          <li>Todo el sistema</li>
+          <li>Usuarios ilimitados</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <h3>Total</h3>
+        <p class="monto">$549<small>/mes</small></p>
+        <p style="font-size:14px;color:var(--brand);font-weight:700;margin:0">o $5,490/año <span style="font-weight:400;color:var(--muted)">(2 meses gratis)</span></p>
+        <ul>
+          <li>4+ proveedores o multi-sede</li>
+          <li>Todo el sistema</li>
+          <li>Soporte prioritario</li>
+        </ul>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:26px;font-size:14.5px">Instalación y configuración: $1,500 (único pago) · gratis con plan anual.<br>¿Prefiere un modelo por porcentaje de cobro? También disponible bajo estructura aprobada — consúltenos.</p>
+  </div>
+</section>
+
+<section id="seguridad">
+  <div class="wrap">
+    <h2 class="sec">Seguridad y cumplimiento</h2>
+    <p class="lead">Diseñado para las reglas que rigen su clínica.</p>
+    <div class="grid3">
+      <div class="card"><div class="ico">🏥</div><h3>Datos separados</h3><p>La información de su clínica vive aislada de la de cualquier otra.</p></div>
+      <div class="card"><div class="ico">📜</div><h3>Listo para HIPAA</h3><p>Auditoría de accesos, sesiones que se cierran solas y contratos BAA.</p></div>
+      <div class="card"><div class="ico">⚖️</div><h3>Reglas PIP de Florida</h3><p>Plazos 627.736, firmas válidas ESIGN/UETA, consentimiento TCPA y estimado de buena fe.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2 class="sec">Preguntas frecuentes</h2>
+    <div class="faq">
+      <details><summary>¿Necesito saber de tecnología?</summary><p>No. Si sabe usar WhatsApp, sabe usar el sistema. Nosotros nos encargamos de la instalación, la configuración y el soporte.</p></details>
+      <details><summary>¿La firma electrónica es válida legalmente?</summary><p>Sí. Las firmas electrónicas son válidas bajo la ley federal ESIGN y la ley UETA de Florida, con registro de fecha, hora e IP. Los documentos que la ley exige a mano (como la declaración 5(e)) se imprimen precargados para firma manuscrita.</p></details>
+      <details><summary>¿Mis datos están separados de otras clínicas?</summary><p>Sí. Cada clínica opera en su propio espacio aislado de la base de datos.</p></details>
+      <details><summary>¿Cómo empiezo?</summary><p>Le mostramos el sistema en vivo (30 minutos), configuramos su clínica y capacitamos a su equipo en una tarde. Al día siguiente ya están operando.</p></details>
+    </div>
+  </div>
+</section>
+
+<div class="cta">
+  <div class="wrap">
+    <h2>¿Listo para quitarse el papel de encima?</h2>
+    <p>Acceda a su cuenta o pida una demostración en vivo.</p>
+    <a class="btn big" href="#" data-login style="background:#fff;color:var(--brand-dark)!important">Iniciar sesión</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div><strong style="color:#fff">PIPCare</strong> — Sistema de gestión para clínicas de accidentes · Florida</div>
+    <div><a href="/terminos/">Términos</a> · <a href="/privacidad/">Privacidad</a> · <a href="#" data-login>Acceso de usuarios</a></div>
+  </div>
+</footer>
+
+<div class="modal-ov" id="loginModal" hidden>
+  <div class="modal-card">
+    <button class="modal-x" id="loginClose" aria-label="Cerrar">×</button>
+    <h3>Acceso de usuarios</h3>
+    <p class="sub">Sistema de gestión para clínicas de accidentes</p>
+    <div class="modal-err" id="loginErr" hidden></div>
+    <form id="loginForm">
+      {% csrf_token %}
+      <label for="m_user">Usuario</label>
+      <input id="m_user" name="username" required autocomplete="username">
+      <label for="m_pass">Contraseña</label>
+      <input id="m_pass" type="password" name="password" required autocomplete="current-password">
+      <button class="btn big" type="submit" id="loginBtn" style="width:100%;margin-top:20px">Entrar al sistema</button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+  var modal=document.getElementById('loginModal');
+  function openLogin(e){ if(e) e.preventDefault(); modal.hidden=false; document.body.style.overflow='hidden';
+    setTimeout(function(){ document.getElementById('m_user').focus(); },50); }
+  function closeLogin(){ modal.hidden=true; document.body.style.overflow=''; }
+  document.querySelectorAll('[data-login]').forEach(function(a){ a.addEventListener('click',openLogin); });
+  document.getElementById('loginClose').addEventListener('click',closeLogin);
+  modal.addEventListener('click',function(e){ if(e.target===modal) closeLogin(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!modal.hidden) closeLogin(); });
+  document.getElementById('loginForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var err=document.getElementById('loginErr'), btn=document.getElementById('loginBtn');
+    err.hidden=true; btn.disabled=true; btn.textContent='Entrando…';
+    fetch("{% url 'ajax_login' %}",{method:'POST',body:new FormData(e.target),headers:{'X-Requested-With':'XMLHttpRequest'}})
+      .then(function(r){ return r.json().then(function(j){ return {s:r.status,j:j}; }); })
+      .then(function(res){
+        if(res.j.ok){ window.location.href=res.j.redirect; }
+        else{ err.textContent=res.j.error||'No se pudo entrar.'; err.hidden=false;
+              btn.disabled=false; btn.textContent='Entrar al sistema'; }
+      })
+      .catch(function(){ err.textContent='Error de conexión. Inténtelo de nuevo.'; err.hidden=false;
+        btn.disabled=false; btn.textContent='Entrar al sistema'; });
+  });
+})();
+</script>
+
+</body>
+</html>
