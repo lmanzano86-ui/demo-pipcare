@@ -1,4 +1,4 @@
-# Sistema para Clínicas de Accidentes (PIPCare — nombre comercial propuesto)
+# Sistema para Clínicas de Accidentes (SecurePIP — nombre comercial propuesto)
 
 Plataforma multi-clínica (Python + Django + PostgreSQL) para clínicas de
 accidentes / lesiones personales en Florida, con facturación PIP integrada

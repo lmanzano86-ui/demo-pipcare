@@ -1,4 +1,4 @@
-# Runbook — Publicar la DEMO de PIPCare
+# Runbook — Publicar la DEMO de SecurePIP
 
 **Estado:** demo verificada localmente el 19 oct 2026 (9/9 comprobaciones OK,
 ver `demo-preview/`). **NO publicar sin el «Sí» explícito de Lester.**
@@ -30,7 +30,7 @@ separada con cifrado KMS, secretos en Secrets Manager y cron de respaldos.
 ```bash
 DJANGO_SECRET_KEY=<generar una nueva: python -c "import secrets; print(secrets.token_urlsafe(50))">
 DJANGO_DEBUG=False
-DJANGO_ALLOWED_HOSTS=<dominio de la demo>          # ej: demo-pipcare.onrender.com
+DJANGO_ALLOWED_HOSTS=<dominio de la demo>          # ej: demo-securepip.onrender.com
 DJANGO_CSRF_TRUSTED_ORIGINS=https://<dominio de la demo>
 DATABASE_URL=<la que provea el hosting>             # en Docker local: postgresql://clinicas:clinicas@db:5432/clinicas
 ```
@@ -89,7 +89,7 @@ EOF
 
 ## 4. Verificación post-despliegue (checklist)
 
-Con el dominio de la demo (p. ej. `https://demo-pipcare.onrender.com`;
+Con el dominio de la demo (p. ej. `https://demo-securepip.onrender.com`;
 el tenant demo responde en el dominio raíz si es el único, o en
 `clinica-demo.<dominio>` según la configuración de dominios):
 
