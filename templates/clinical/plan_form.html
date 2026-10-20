@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Nuevo plan de tratamiento{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Plan de tratamiento</h1>
+    <p class="sub">Caso: {{ accident.patient }} · accidente del {{ accident.date }}. Documenta la necesidad médica del tratamiento.</p>
+  </div>
+</div>
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    <label><strong>Plan</strong></label>
+    <input type="text" name="title" value="Plan de cuidado quiropráctico" required maxlength="160" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; margin:6px 0 12px">
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px">
+      <div><label><strong>Sesiones indicadas*</strong></label>
+        <input type="number" name="sessions_prescribed" required min="1" value="12" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>Frecuencia</strong></label>
+        <input type="text" name="frequency" placeholder="3 veces por semana" maxlength="80" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+      <div><label><strong>Inicio*</strong></label>
+        <input type="date" name="start_date" required style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+    </div>
+    <div style="margin-top:12px"><label><strong>Fin estimado</strong></label>
+      <input type="date" name="end_date" style="padding:10px; border:1px solid var(--border); border-radius:10px"></div>
+    <div style="margin-top:12px"><label><strong>Notas clínicas</strong></label>
+      <textarea name="notes" rows="3" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></textarea></div>
+    <div style="display:flex; gap:10px; margin-top:14px">
+      <button type="submit" class="btn">Crear plan</button>
+      <a class="btn-sec" href="{% url 'accident_detail' accident.pk %}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

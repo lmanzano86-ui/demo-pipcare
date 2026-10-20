@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Nota SOAP{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Nota SOAP</h1>
+    <p class="sub">{{ visit }} · {{ visit.date }}</p>
+  </div>
+</div>
+<div class="card">
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <div class="form-actions">
+      <button type="submit">Guardar nota</button>
+      <a class="btn-sec" href="{% url 'accident_detail' visit.accident.pk %}">Volver al caso</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

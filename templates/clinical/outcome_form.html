@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Medición funcional{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Medición funcional</h1>
+    <p class="sub">{{ accident.patient }} · Oswestry / NDI / dolor</p>
+  </div>
+</div>
+<div class="card">
+  <form method="post">{% csrf_token %}
+    <div class="form-grid">{{ form.as_p }}</div>
+    <div class="form-actions">
+      <button type="submit">Guardar medición</button>
+      <a class="btn-sec" href="{% url 'accident_detail' accident.pk %}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
