@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>{{ title }}</h1></div>
+  <div class="page-actions"><a class="btn-sec" href="{% url 'agenda' %}">← Agenda</a></div>
+</div>
+
+{% if messages %}{% for m in messages %}<div class="alert bad">{{ m }}</div>{% endfor %}{% endif %}
+
+{% if not accident %}
+<div class="card">
+  <h3>1. Seleccione el caso</h3>
+  <form method="get" style="display:flex; gap:10px">
+    <input type="text" name="q" value="{{ q }}" placeholder="Nombre, teléfono o Nº de reclamo…"
+           style="flex:1; padding:10px; border:1px solid var(--border); border-radius:10px">
+    <button type="submit" class="btn-sec">Buscar</button>
+  </form>
+  {% if q %}
+    {% if results %}
+    <div style="margin-top:12px; display:grid; gap:8px">
+      {% for a in results %}
+      <a class="btn-sec" style="display:flex; justify-content:space-between" href="?accident={{ a.pk }}&d={{ request.GET.d|default:'' }}">
+        <span><strong>{{ a.patient }}</strong> — {{ a.date }}</span><span class="sub">{{ a.claim_number|default:"" }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}<p class="sub" style="margin-top:10px">Sin resultados para «{{ q }}».</p>{% endif %}
+  {% endif %}
+</div>
+{% endif %}
+
+{% if accident or form.is_bound %}
+<div class="card">
+  <h3>{% if accident %}2. {% endif %}Datos de la cita</h3>
+  {% if accident %}
+  <p><strong>Caso:</strong> {{ accident.patient }} — {{ accident.date }}
+     <a class="btn-ghost" href="{% url 'appointment_create' %}" style="font-size:12px">(cambiar)</a></p>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    {% if accident %}<input type="hidden" name="accident_id" value="{{ accident.pk }}">{% endif %}
+    {{ form.non_field_errors }}
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+      <div><label><strong>Proveedor</strong></label><br>{{ form.provider }}{{ form.provider.errors }}</div>
+      <div><label><strong>Tipo</strong></label><br>{{ form.appt_type }}{{ form.appt_type.errors }}</div>
+      <div><label><strong>Fecha</strong></label><br>{{ form.date }}{{ form.date.errors }}</div>
+      <div><label><strong>Hora</strong></label><br>{{ form.start_time }}{{ form.start_time.errors }}</div>
+      <div><label><strong>Duración (min)</strong></label><br>{{ form.duration_min }}{{ form.duration_min.errors }}</div>
+      <div><label><strong>Estado</strong></label><br>{{ form.status }}{{ form.status.errors }}</div>
+    </div>
+    <div style="margin-top:12px"><label><strong>Notas</strong></label><br>{{ form.notes }}</div>
+    <div style="margin-top:14px"><button type="submit" class="btn">Guardar cita</button></div>
+  </form>
+</div>
+{% endif %}
+<style>
+input, select, textarea { padding:10px; border:1px solid var(--border); border-radius:10px; width:100%; box-sizing:border-box; }
+label strong { font-size:13px; }
+</style>
+{% endblock %}

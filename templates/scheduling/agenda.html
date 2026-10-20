@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Agenda — {{ day }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Agenda</h1>
+    <p class="sub">{{ day|date:"l, d M Y" }}</p>
+  </div>
+  <div class="page-actions" style="display:flex; gap:8px; flex-wrap:wrap">
+    <a class="btn-sec" href="{% url 'agenda' %}?d={{ prev_day|date:'Y-m-d' }}">← Ayer</a>
+    {% if not is_today %}<a class="btn-sec" href="{% url 'agenda' %}">Hoy</a>{% endif %}
+    <a class="btn-sec" href="{% url 'agenda' %}?d={{ next_day|date:'Y-m-d' }}">Mañana →</a>
+    <a class="btn" href="{% url 'appointment_create' %}?d={{ day|date:'Y-m-d' }}">+ Nueva cita</a>
+  </div>
+</div>
+
+{% if messages %}{% for m in messages %}<div class="alert ok">{{ m }}</div>{% endfor %}{% endif %}
+
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Hora</th><th>Paciente</th><th>Proveedor</th><th>Tipo</th><th>Estado</th><th>Recordatorio</th><th></th></tr>
+    {% for a in appointments %}
+    <tr>
+      <td style="white-space:nowrap"><strong>{{ a.start_time|time:"H:i" }}</strong>–{{ a.end_time|time:"H:i" }}</td>
+      <td><a href="{% url 'accident_detail' a.accident.pk %}"><strong>{{ a.patient }}</strong></a><br>
+          <span class="sub" style="font-size:12px">{{ a.accident.date }}</span></td>
+      <td><span class="badge info" style="border-left:4px solid {{ a.provider_color }}">{{ a.provider.get_full_name|default:a.provider.username }}</span></td>
+      <td>{{ a.get_appt_type_display }}</td>
+      <td>
+        <span class="badge {% if a.status == 'completed' or a.status == 'confirmed' %}ok{% elif a.status == 'no_show' %}bad{% elif a.status == 'scheduled' %}neutral{% else %}warn{% endif %}">{{ a.get_status_display }}</span>
+      </td>
+      <td>{% if a.reminder_sent_at %}<span class="badge ok">Enviado</span>{% elif a.patient.sms_allowed %}<span class="sub">Pendiente</span>{% else %}<span class="sub">Sin consentimiento</span>{% endif %}</td>
+      <td style="white-space:nowrap; text-align:right">
+        <form method="post" action="{% url 'appointment_status' a.pk %}" style="display:inline">
+          {% csrf_token %}
+          <select name="status" onchange="this.form.submit()" style="padding:6px; border:1px solid var(--border); border-radius:8px; font-size:12px">
+            {% for val, label in a.STATUS_CHOICES %}
+            <option value="{{ val }}" {% if a.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </form>
+        <a class="btn-ghost" href="{% url 'appointment_update' a.pk %}">Editar</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" class="empty">Sin citas este día. <a href="{% url 'appointment_create' %}?d={{ day|date:'Y-m-d' }}">Agendar la primera →</a></td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Recordatorios SMS</h3>
+  <p class="sub">Se envían a las citas de mañana con consentimiento SMS vigente (TCPA). Cada envío queda registrado.</p>
+  <form method="post" action="{% url 'reminders_now' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn-sec">Enviar recordatorios ahora</button>
+  </form>
+  <p class="sub" style="font-size:12px; margin-top:8px">En producción: programe <code>python manage.py send_reminders</code> con cron una vez al día. Sin Twilio configurado, los mensajes se registran en modo demostración.</p>
+</div>
+{% endblock %}

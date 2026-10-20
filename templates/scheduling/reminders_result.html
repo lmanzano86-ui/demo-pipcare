@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Recordatorios enviados{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Recordatorios SMS</h1><p class="sub">Citas de mañana</p></div>
+  <div class="page-actions"><a class="btn-sec" href="{% url 'agenda' %}">← Agenda</a></div>
+</div>
+{% if messages %}{% for m in messages %}<div class="alert ok">{{ m }}</div>{% endfor %}{% endif %}
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div class="table-wrap" style="border:0; border-radius:0; box-shadow:none">
+  <table>
+    <tr><th>Cita</th><th>Paciente</th><th>Teléfono</th><th>Resultado</th></tr>
+    {% for appt, ok, detail in results %}
+    <tr>
+      <td>{{ appt.date }} {{ appt.start_time|time:"H:i" }} — {{ appt.provider }}</td>
+      <td>{{ appt.patient }}</td>
+      <td>{{ appt.patient.phone|default:"—" }}</td>
+      <td>{% if ok %}<span class="badge ok">Enviado</span>{% else %}<span class="badge warn">Omitido</span>{% endif %}
+          <span class="sub" style="font-size:12px">{{ detail }}</span></td>
+    </tr>
+    {% empty %}<tr><td colspan="4" class="empty">No hay citas de mañana pendientes de recordatorio.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}
