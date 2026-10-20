@@ -27,7 +27,7 @@ demo, created = Clinic.objects.get_or_create(
         "npi": "1234567890",
         "tax_id": "12-3456789",
         "phone": "(813) 555-0100",
-        "plan": "todo_incluido",
+        "plan": "crecimiento",
         "status": "active",
     },
 )
