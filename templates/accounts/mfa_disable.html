@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desactivar segundo factor — PIPCare</title>
+<style>
+body{margin:0;font-family:Helvetica,Arial,sans-serif;background:#F6F5F2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border:1px solid #E7E2D9;border-radius:12px;padding:32px;max-width:380px;width:100%}
+h2{color:#0F2E2B;margin:0 0 8px}
+p{color:#555;font-size:14px;line-height:1.6}
+input{font-size:16px;padding:10px;width:100%;box-sizing:border-box;border:2px solid #E7E2D9;border-radius:8px;margin:8px 0}
+button{background:#B91C1C;color:#fff;border:0;border-radius:8px;padding:12px 28px;font-size:16px;cursor:pointer;width:100%}
+.msg{padding:10px;border-radius:6px;font-size:14px;margin-bottom:12px;background:#FDECEA;color:#9B1C1C}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>Desactivar segundo factor</h2>
+<p>Por seguridad, confirme su contraseña actual. <strong>No recomendado.</strong></p>
+{% if messages %}{% for m in messages %}<div class="msg">{{ m }}</div>{% endfor %}{% endif %}
+<form method="post">{% csrf_token %}
+<input type="password" name="password" placeholder="Contraseña actual" autofocus><br><br>
+<button type="submit">Desactivar</button>
+</form>
+<p style="margin-top:14px"><a href="/inicio/" style="color:#0F766E">← Volver</a></p>
+</div>
+</body>
+</html>
